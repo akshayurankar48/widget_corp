@@ -1,14 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php require_once("includes/functions.php"); ?>
+<?php include("includes/header.php"); ?>
+<table id="structure">
+    <tr>
+        <td id="navigation">
+            &nbsp;
+        </td>
+        <td id="page">
+            <h2>Content Area</h2>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
-
-</body>
-
-</html>
+        </td>
+    </tr>
+</table>
+<?php include("includes/footer.php"); ?>
