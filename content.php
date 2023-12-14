@@ -4,21 +4,25 @@
 <table id="structure">
     <tr>
         <td id="navigation">
-            <?php
-            // 2. Perform database query
-            $sql = "SELECT * FROM subjects";
-            $result = $conn->query($sql);
+            <ul class="subjects">
+                <?php
+                $subject_set = get_all_subjects($conn);
 
-            // 3.  Check if the query was successful
-            if (!$result) {
-                die("Database query failed: " . $conn->error);
-            }
+                // 4. Use returned data
+                while ($subject = $subject_set->fetch_assoc()) {
+                    echo "<li>{$subject["menu_name"]}</li>";
+                    // 2. Perform database query
+                    $page_set = get_pages_for_subject($subject["id"], $conn);
 
-            // 4. Use returned data
-            while ($row = $result->fetch_assoc()) {
-                echo $row["menu_name"] . " " . $row["position"] . "<br />";
-            }
-            ?>
+                    echo "<ul class=\"pages\">";
+                    // 4. Use returned data
+                    while ($page = $page_set->fetch_assoc()) {
+                        echo "<li>{$page["menu_name"]}</li>";
+                    }
+                    echo "</ul>";
+                }
+                ?>
+            </ul>
         </td>
         <td id="page">
             <h2>Content Area</h2>
