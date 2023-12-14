@@ -3,3 +3,9 @@
 </body>
 
 </html>
+<?php
+// 5. Close connection
+if (isset($conn)) {
+    $conn->close();
+}
+?>
