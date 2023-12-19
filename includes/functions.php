@@ -1,5 +1,6 @@
 <?php
 require("constants.php");
+
 // This is the place for simple functions
 
 function confirm_query($result_set, $conn)
@@ -17,31 +18,72 @@ function redirect_to($location = NULL)
     }
 }
 
-function get_all_subjects($conn)
+function get_all_subjects($public = true)
 {
     global $conn;
-    $sql = "SELECT * 
-    FROM subjects
-    ORDER BY position ASC";
-    $subject_set = $conn->query($sql);
 
+    // Use prepared statements to prevent SQL injection
+    $query = "SELECT * FROM subjects ";
+    if ($public) {
+        $query .= "WHERE visible = 1 ";
+    }
+    $query .= "ORDER BY position ASC";
 
-    confirm_query($subject_set, $conn);
-    return $subject_set;
+    $stmt = $conn->prepare($query);
+
+    if ($stmt) {
+        // Execute the query
+        $stmt->execute();
+
+        // Get the result set
+        $subject_set = $stmt->get_result();
+
+        // Confirm the query
+        confirm_query($subject_set, $conn);
+
+        // Close the statement
+        $stmt->close();
+
+        return $subject_set;
+    } else {
+        // Handle the case when the statement preparation fails
+        die("Database query failed: " . $conn->error);
+    }
 }
 
-function get_pages_for_subject($subject_id, $conn)
+function get_pages_for_subject($subject_id, $public = true)
 {
     global $conn;
-    $sql = "SELECT * 
-    FROM pages 
-    WHERE subject_id = {$subject_id} 
-    ORDER BY position ASC";
-    $page_set = $conn->query($sql);
 
+    // Use prepared statements to prevent SQL injection
+    $query = "SELECT * FROM pages ";
+    $query .= "WHERE subject_id = ? ";
 
-    confirm_query($page_set, $conn);
-    return $page_set;
+    if ($public) {
+        $query .= "AND visible = 1 ";
+    }
+
+    $query .= "ORDER BY position ASC";
+
+    // Prepare the statement
+    $stmt = $conn->prepare($query);
+
+    // Bind the parameter
+    $stmt->bind_param("i", $subject_id);
+
+    // Execute the query
+    $stmt->execute();
+
+    // Get the result set
+    $result_set = $stmt->get_result();
+
+    // Confirm the query
+    confirm_query($result_set, $conn);
+
+    // Close the statement
+    $stmt->close();
+
+    return $result_set;
 }
 
 function get_subject_by_id($subject_id, $conn)
@@ -92,13 +134,30 @@ function get_page_by_id($page_id, $conn)
     }
 }
 
+function get_default_page($subject_id)
+{
+    // Get all visible pages
+    $page_set = get_pages_for_subject($subject_id, true);
+
+
+    $first_page = $page_set->fetch_assoc();
+
+    if ($first_page) {
+        return $first_page;
+    } else {
+        return NULL;
+    }
+}
+
+
 function find_selected_page()
 {
-    global $sel_subject, $sel_page, $conn;
-
+    global $conn;
+    global $sel_subject;
+    global $sel_page;
     if (isset($_GET['subj'])) {
         $sel_subject = get_subject_by_id($_GET['subj'], $conn);
-        $sel_page = NULL;
+        $sel_page = get_default_page($sel_subject['id']);
     } elseif (isset($_GET['page'])) {
         $sel_subject = NULL;
         $sel_page = get_page_by_id($_GET['page'], $conn);
@@ -108,7 +167,8 @@ function find_selected_page()
     }
 }
 
-function navigation($sel_subject, $sel_page, $conn)
+
+function navigation($sel_subject, $sel_page, $conn, $public = false)
 {
     $output = "<ul class=\"subjects\">";
     $subject_set = get_all_subjects($conn);
@@ -143,6 +203,46 @@ function navigation($sel_subject, $sel_page, $conn)
         }
 
         $output .= "</li>";
+    }
+
+    $output .= "</ul>";
+
+    return $output;
+}
+
+function public_navigation($sel_subject, $sel_page, $public = true)
+{
+    $output = "<ul class=\"subjects\">";
+
+    // Fetch subjects using mysqli
+    $subject_set = get_all_subjects($public);
+
+    while ($subject = mysqli_fetch_assoc($subject_set)) {
+        $output .= "<li";
+
+        if (!is_null($sel_subject) && $subject["id"] == $sel_subject['id']) {
+            $output .= " class=\"selected\"";
+        }
+
+        $output .= "><a href=\"index.php?subj=" . urlencode($subject["id"]) . "\">{$subject["menu_name"]}</a></li>";
+
+        if (!is_null($sel_subject) && $subject["id"] == $sel_subject['id']) {
+            // Fetch pages for the selected subject
+            $page_set = get_pages_for_subject($subject["id"], $public);
+            $output .= "<ul class=\"pages\">";
+
+            while ($page = mysqli_fetch_assoc($page_set)) {
+                $output .= "<li";
+
+                if (!is_null($sel_page) && $page["id"] == $sel_page['id']) {
+                    $output .= " class=\"selected\"";
+                }
+
+                $output .= "><a href=\"index.php?page=" . urlencode($page["id"]) . "\">{$page["menu_name"]}</a></li>";
+            }
+
+            $output .= "</ul>";
+        }
     }
 
     $output .= "</ul>";
