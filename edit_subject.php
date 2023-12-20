@@ -1,42 +1,38 @@
-<?php require_once("includes/connection.php"); ?>
-<?php require_once("includes/functions.php"); ?>
-
+<?php require_once("includes/session.php"); ?>
+<?php
+require_once("includes/connection.php");
+require_once("includes/functions.php");
+?>
+<?php confirm_logged_in(); ?>
 <?php
 if (intval($_GET['subj']) == 0) {
     redirect_to("content.php");
 }
 
 if (isset($_POST['submit'])) {
+    $id = mysqli_real_escape_string($conn, $_GET['subj']);
+    $menu_name = mysqli_real_escape_string($conn, $_POST['menu_name']);
+    $position = mysqli_real_escape_string($conn, $_POST['position']);
+    $visible = isset($_POST['visible']) ? 1 : 0;
+
+    // Validation
     $errors = array();
 
-    $required_fields = array('menu_name', 'position', 'visible');
-    foreach ($required_fields as $fieldname) {
-        if (!isset($_POST[$fieldname]) || empty($_POST[$fieldname])) {
-            $errors[] = $fieldname;
-        }
-    }
-
-    $fields_with_lengths = array('menu_name' => 30);
-    foreach ($fields_with_lengths as $fieldname => $maxlength) {
-        if (strlen(trim(mysqli_real_escape_string($conn, $_POST[$fieldname]))) > $maxlength) {
-            $errors[] = $fieldname;
-        }
+    if (empty($menu_name) || !is_numeric($position) || ($visible !== 0 && $visible !== 1)) {
+        $errors[] = 'Invalid input. Please fill in all fields.';
     }
 
     if (empty($errors)) {
         // Perform Update
-        $id = mysqli_real_escape_string($conn, $_GET['subj']);
-        $menu_name = mysqli_real_escape_string($conn, $_POST['menu_name']);
-        $position = mysqli_real_escape_string($conn, $_POST['position']);
-        $visible = mysqli_real_escape_string($conn, $_POST['visible']);
-
         $query = "UPDATE subjects SET 
                     menu_name = '{$menu_name}', 
                     position = {$position}, 
                     visible = {$visible} 
                 WHERE id = {$id}";
+
         $result = $conn->query($query);
-        if (mysqli_affected_rows($conn) == 1) {
+
+        if ($result && mysqli_affected_rows($conn) == 1) {
             // Success
             $message = "The subject was successfully updated.";
         } else {
@@ -46,13 +42,14 @@ if (isset($_POST['submit'])) {
         }
     } else {
         // Errors occurred
-        $message = "There were " . count($errors) . " errors in the form.";
+        $message = "There were errors in the form.";
     }
 }
-?>
-<?php find_selected_page(); ?>
 
-<?php include("includes/header.php"); ?>
+find_selected_page();
+
+include("includes/header.php");
+?>
 <table id="structure">
     <tr>
         <td id="navigation">
@@ -60,30 +57,22 @@ if (isset($_POST['submit'])) {
         </td>
         <td id="page">
             <h2>Edit Subject: <?php echo $sel_subject['menu_name']; ?></h2>
-            <?php if (!empty($message)) {
-                echo "<p class=\"message\">" . $message . "</p>";
-            } ?>
-            <?php
-            // output a list of the fields that had errors
-            if (!empty($errors)) {
-                echo "<p class=\"errors\">";
-                echo "Please review the following fields:<br />";
-                foreach ($errors as $error) {
-                    echo " - " . $error . "<br />";
-                }
-                echo "</p>";
-            }
-            ?>
+            <?php if (!empty($message)) : ?>
+                <p class="message"><?php echo $message; ?></p>
+            <?php endif; ?>
+            <?php if (!empty($errors)) : ?>
+                <p class="errors"><?php echo implode("<br />", $errors); ?></p>
+            <?php endif; ?>
             <form action="edit_subject.php?subj=<?php echo urlencode($sel_subject['id']); ?>" method="post">
                 <p>Subject name:
-                    <input type="text" name="menu_name" value="<?php echo ($sel_subject['menu_name']); ?>" id="menu_name" />
+                    <input type="text" name="menu_name" value="<?php echo htmlspecialchars($sel_subject['menu_name']); ?>" id="menu_name" />
                 </p>
                 <p>Position:
                     <select name="position">
                         <?php
                         $subject_set = get_all_subjects($conn);
                         $subject_count = mysqli_num_rows($subject_set);
-                        // $subject_count + 1 b/c we are adding a subject
+
                         for ($count = 1; $count <= $subject_count + 1; $count++) {
                             echo "<option value=\"{$count}\"";
                             if ($sel_subject['position'] == $count) {
@@ -95,17 +84,7 @@ if (isset($_POST['submit'])) {
                     </select>
                 </p>
                 <p>Visible:
-                    <input type="radio" name="visible" value="0" <?php
-                                                                    if ($sel_subject['visible'] == 0) {
-                                                                        echo " checked";
-                                                                    }
-                                                                    ?> /> No
-                    &nbsp;
-                    <input type="radio" name="visible" value="1" <?php
-                                                                    if ($sel_subject['visible'] == 1) {
-                                                                        echo " checked";
-                                                                    }
-                                                                    ?> /> Yes
+                    <input type="checkbox" name="visible" value="1" <?php echo ($sel_subject['visible'] == 1) ? 'checked' : ''; ?> /> Yes
                 </p>
                 <input type="submit" name="submit" value="Edit Subject" />
                 &nbsp;&nbsp;

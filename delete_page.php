@@ -1,7 +1,10 @@
+<?php require_once("includes/session.php"); ?>
 <?php
 require_once("includes/connection.php");
 require_once("includes/functions.php");
-
+?>
+<?php confirm_logged_in(); ?>
+<?php
 // Make sure the page id sent is an integer
 if (intval($_GET['page']) == 0) {
     redirect_to('content.php');

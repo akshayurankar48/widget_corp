@@ -1,6 +1,10 @@
+<?php require_once("includes/session.php"); ?>
 <?php
 require_once("includes/connection.php");
 require_once("includes/functions.php");
+?>
+<?php confirm_logged_in(); ?>
+<?php
 
 // Make sure the subject id sent is an integer
 if (intval($_GET['subj']) == 0) {
@@ -15,39 +19,14 @@ if (isset($_POST['submit'])) {
     // Initialize an array to hold our errors
     $errors = array();
 
-    // // Perform validations on the form data
-    // $required_fields = array('subject_id', 'menu_name', 'position', 'visible', 'content');
-    // $errors = array_merge($errors, check_required_fields($required_fields, $_POST, $conn));
-    // $fields_with_lengths = array('menu_name' => 30);
-    // $errors = array_merge($errors, check_max_field_lengths($fields_with_lengths, $_POST, $conn));
-    // var_dump($errors);
-
-    // // Clean up the form data before putting it in the database
-    // $subject_id = isset($_POST['subject_id']) ? mysqli_real_escape_string($conn, $_POST['subject_id']) : 0;
-    // $menu_name = trim($conn->escape_string($_POST['menu_name']));
-    // $position = mysqli_real_escape_string($conn, $_POST['position']);
-    // $visible = trim($conn->escape_string($_POST['visible']));
-    // $content = $conn->escape_string($_POST['content']);
-
-    // var_dump($errors);
-
-    // if (!empty($errors)) {
-    //     var_dump($errors);
-    //     redirect_to("new_page.php");
-    // }
-
-    // Database submission only proceeds if there were NO errors
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $subject_id = isset($_GET['subj']) ? $_GET['subj'] : 0;
-        var_dump('subj');
         $menu_name = $_POST['menu_name'];
         $position = $_POST['position'];
         $visible = $_POST['visible'];
         $content = $_POST['content'];
 
         $query = "INSERT INTO pages (subject_id, menu_name, position, visible, content) VALUES (?, ?, ?, ?, ?)";
-
-        var_dump($query);
 
         $stmt = $conn->prepare($query);
         $stmt->bind_param("isisi", $subject_id, $menu_name, $position, $visible, $content);

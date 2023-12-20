@@ -1,3 +1,5 @@
+<?php require_once("includes/session.php"); ?>
+<?php confirm_logged_in(); ?>
 <?php // this page is included by new_page.php and edit_page.php 
 ?>
 <?php if (!isset($new_page)) {
