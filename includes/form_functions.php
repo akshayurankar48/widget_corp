@@ -1,25 +1,26 @@
 <?php
 
-function check_required_fields($required_array)
+function check_required_fields($required_fields, $form_data)
 {
-    $field_errors = array();
-    foreach ($required_array as $fieldname) {
-        if (!isset($post_data[$fieldname]) || (empty($post_data[$fieldname]) && $_POST[$fieldname] != 0)) {
-            $field_errors[] = $fieldname;
+    $errors = array();
+    foreach ($required_fields as $field) {
+        if (empty(trim($form_data[$field]))) {
+            $errors[] = $field;
         }
     }
-    return $field_errors;
+    return $errors;
 }
 
-function check_max_field_lengths($field_length_array, $post_data, $conn)
+function check_max_field_lengths($fields_with_lengths, $form_data, $conn)
 {
-    $field_errors = array();
-    foreach ($field_length_array as $fieldname => $maxlength) {
-        if (strlen(trim(mysqli_real_escape_string($conn, $post_data[$fieldname]))) > $maxlength) {
-            $field_errors[] = $fieldname;
+    $errors = array();
+    foreach ($fields_with_lengths as $field => $max_length) {
+        $value = trim(mysqli_real_escape_string($conn, $form_data[$field]));
+        if (strlen($value) > $max_length) {
+            $errors[] = $field;
         }
     }
-    return $field_errors;
+    return $errors;
 }
 
 function display_errors($error_array)

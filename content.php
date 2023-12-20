@@ -1,5 +1,7 @@
+<?php require_once("includes/session.php"); ?>
 <?php require_once("includes/connection.php"); ?>
 <?php require_once("includes/functions.php"); ?>
+<?php confirm_logged_in(); ?>
 <?php find_selected_page(); ?>
 <?php include("includes/header.php"); ?>
 <table id="structure">
@@ -17,7 +19,7 @@
             ?>
                 <h2><?php echo $sel_page['menu_name']; ?></h2>
                 <div class="page-content">
-                    <!-- <?php echo $sel_page['content']; ?> -->
+                    <?php echo $sel_page['content']; ?>
                 </div>
                 <br />
                 <a href="edit_page.php?page=<?php echo urlencode($sel_page['id']); ?>">Edit page</a>

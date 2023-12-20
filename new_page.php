@@ -1,6 +1,10 @@
+<?php require_once("includes/session.php"); ?>
 <?php
 require_once("includes/connection.php");
 require_once("includes/functions.php");
+?>
+<?php confirm_logged_in(); ?>
+<?php
 
 // Make sure the subject id sent is an integer
 if (intval($_GET['subj']) == 0) {
@@ -17,15 +21,12 @@ if (isset($_POST['submit'])) {
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $subject_id = isset($_GET['subj']) ? $_GET['subj'] : 0;
-        var_dump('subj');
         $menu_name = $_POST['menu_name'];
         $position = $_POST['position'];
         $visible = $_POST['visible'];
         $content = $_POST['content'];
 
         $query = "INSERT INTO pages (subject_id, menu_name, position, visible, content) VALUES (?, ?, ?, ?, ?)";
-
-        var_dump($query);
 
         $stmt = $conn->prepare($query);
         $stmt->bind_param("isisi", $subject_id, $menu_name, $position, $visible, $content);

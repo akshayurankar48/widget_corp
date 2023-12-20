@@ -1,7 +1,10 @@
+<?php require_once("includes/session.php"); ?>
 <?php
 require_once("includes/connection.php");
 require_once("includes/functions.php");
-
+?>
+<?php confirm_logged_in(); ?>
+<?php
 // make sure the page id sent is an integer
 if (intval($_GET['page']) == 0) {
     redirect_to('content.php');
@@ -41,17 +44,17 @@ if (isset($_POST['submit'])) {
             $message = "The page could not be updated.";
             $message .= "<br />" . $conn->error;
         }
-        // } else {
-        //     if (count($errors) == 1) {
-        //         var_dump($errors);
-        //         $message = "There was 1 error in the form.";
-        //     } else {
-        $message = "There were " . count($errors) . " errors in the form.";
+    } else {
+        if (count($errors) == 1) {
+            var_dump($errors);
+            $message = "There was 1 error in the form.";
+        } else {
+            $message = "There were " . count($errors) . " errors in the form.";
+        }
     }
+    // END FORM PROCESSING
+
 }
-// END FORM PROCESSING
-
-
 find_selected_page();
 include("includes/header.php");
 ?>
